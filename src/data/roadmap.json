@@ -1,0 +1,793 @@
+{
+  "title": "Claude Certified Architect – Foundations",
+  "subtitle": "Roadmap · Pass Score: 720/1000 · 5 Domains",
+  "domains": [
+    {
+      "id": "d1",
+      "title": "Domain 1: Agentic Architecture & Orchestration",
+      "weight": "27%",
+      "sections": [
+        {
+          "id": "d1s1",
+          "title": "1.1 Agentic Loop Lifecycle",
+          "learning": [
+            "Loop pattern: send request → inspect stop_reason → execute tool → append result → repeat.",
+            "stop_reason='tool_use' → continue loop. stop_reason='end_turn' → terminate.",
+            "Tool results appended to conversation history for next iteration reasoning.",
+            "Model-driven decisions vs pre-configured trees.",
+            "Anti-patterns: parsing natural language for completion, arbitrary iteration caps, checking assistant text as done signal."
+          ],
+          "quiz": [
+            {
+              "q": "Which signal reliably indicates agentic loop completion?",
+              "options": [
+                "Assistant text contains 'done'",
+                "stop_reason equals 'end_turn'",
+                "Max iteration cap reached",
+                "Tool result returns null"
+              ],
+              "answer": 1,
+              "explain": "stop_reason='end_turn' = only reliable termination signal."
+            },
+            {
+              "q": "Where do tool results belong between iterations?",
+              "options": [
+                "Discarded after model reads them",
+                "Stored externally only",
+                "Appended to conversation history",
+                "Sent as system prompt"
+              ],
+              "answer": 2,
+              "explain": "Results appended to history so model reasons over new info."
+            }
+          ]
+        },
+        {
+          "id": "d1s2",
+          "title": "1.2 Coordinator–Subagent Orchestration",
+          "learning": [
+            "Hub-and-spoke: coordinator routes all inter-subagent communication.",
+            "Subagents do NOT inherit coordinator context automatically.",
+            "Coordinator responsibilities: decomposition, delegation, aggregation, dynamic selection.",
+            "Risk: narrow decomposition → incomplete coverage (e.g., 'creative industries' → only visual arts)."
+          ],
+          "quiz": [
+            {
+              "q": "Final report covers only visual arts despite topic 'creative industries'. Logs show coordinator split into digital art / graphic design / photography. Root cause?",
+              "options": [
+                "Synthesis agent lacks gap detection",
+                "Web search queries too narrow",
+                "Coordinator decomposition too narrow",
+                "Document analyzer filters non-visual content"
+              ],
+              "answer": 2,
+              "explain": "Logs reveal subtasks excluded music/writing/film. Subagents executed correctly within assigned scope."
+            }
+          ]
+        },
+        {
+          "id": "d1s3",
+          "title": "1.3 Subagent Invocation & Context Passing",
+          "learning": [
+            "Task tool spawns subagents. allowedTools must include 'Task'.",
+            "Subagent context MUST be explicit in prompt — no automatic inheritance.",
+            "AgentDefinition: description, system_prompt, allowed_tools.",
+            "Parallel spawn: emit multiple Task calls in single coordinator response.",
+            "Pass structured findings (claim + source URL + date) not raw blobs.",
+            "fork_session for divergent exploration from shared baseline."
+          ],
+          "quiz": [
+            {
+              "q": "How to spawn parallel subagents?",
+              "options": [
+                "Emit one Task per turn sequentially",
+                "Emit multiple Task calls in single coordinator response",
+                "Use fork_session for each subagent",
+                "Set tool_choice='any'"
+              ],
+              "answer": 1,
+              "explain": "Multiple Task calls within one response → parallel execution."
+            }
+          ]
+        },
+        {
+          "id": "d1s4",
+          "title": "1.4 Multi-Step Workflows & Handoff",
+          "learning": [
+            "Programmatic enforcement (hooks, gates) = deterministic guarantee.",
+            "Prompt-based ordering = probabilistic (non-zero failure rate).",
+            "Critical sequences (verify customer → refund) require gates.",
+            "Structured handoff: customer ID, root cause, refund amount, recommended action.",
+            "Human reviewer lacks transcript access → summary must be self-contained."
+          ],
+          "quiz": [
+            {
+              "q": "12% of cases skip get_customer before refund. Best fix?",
+              "options": [
+                "Strengthen system prompt mandate",
+                "Add few-shot examples showing get_customer first",
+                "Programmatic prerequisite blocking refund until verified customer ID returned",
+                "Routing classifier filtering tool subset"
+              ],
+              "answer": 2,
+              "explain": "Financial consequence → deterministic gate beats probabilistic prompt approaches."
+            }
+          ]
+        },
+        {
+          "id": "d1s5",
+          "title": "1.5 Hooks: Interception & Normalization",
+          "learning": [
+            "PostToolUse hook: transform tool result BEFORE model processes it.",
+            "PreToolUse hook: block policy-violating tool calls (e.g., refund > $500).",
+            "Hooks deterministic; prompts probabilistic.",
+            "Use hooks for: data normalization (Unix → ISO 8601), compliance enforcement, refund caps."
+          ],
+          "quiz": [
+            {
+              "q": "When pick hooks over prompts?",
+              "options": [
+                "Formatting preferences",
+                "Tone adjustments",
+                "Critical business rules requiring guaranteed compliance",
+                "Casual instructions"
+              ],
+              "answer": 2,
+              "explain": "Hooks = deterministic; required when failure carries financial/legal/safety cost."
+            }
+          ]
+        },
+        {
+          "id": "d1s6",
+          "title": "1.6 Task Decomposition Strategies",
+          "learning": [
+            "Prompt chaining: fixed sequential pipeline (predictable reviews).",
+            "Dynamic decomposition: adaptive subtasks based on discovery.",
+            "Large reviews: per-file pass + cross-file integration pass.",
+            "Open-ended ('add tests to legacy codebase'): map structure → prioritize → adapt."
+          ],
+          "quiz": [
+            {
+              "q": "Single-pass review of 14 files: inconsistent depth, missed bugs. Best restructure?",
+              "options": [
+                "Force devs to split PR",
+                "Per-file passes + separate integration pass",
+                "Larger context window model",
+                "Three independent runs with consensus"
+              ],
+              "answer": 1,
+              "explain": "Attention dilution root cause. File-level passes + integration pass = consistent depth."
+            }
+          ]
+        },
+        {
+          "id": "d1s7",
+          "title": "1.7 Session State, Resume & Fork",
+          "learning": [
+            "--resume <name>: continue named investigation.",
+            "fork_session: independent branches from shared baseline.",
+            "Resume risk: stale tool results after file changes.",
+            "Sometimes fresh start + structured summary beats resume."
+          ],
+          "quiz": [
+            {
+              "q": "Resumed session after code modifications. Best practice?",
+              "options": [
+                "Re-explore entire codebase",
+                "Inform agent about specific file changes for targeted re-analysis",
+                "Always start fresh",
+                "Ignore changes; trust cached context"
+              ],
+              "answer": 1,
+              "explain": "Targeted re-analysis avoids full re-exploration cost."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d2",
+      "title": "Domain 2: Tool Design & MCP Integration",
+      "weight": "18%",
+      "sections": [
+        {
+          "id": "d2s1",
+          "title": "2.1 Tool Interface Design",
+          "learning": [
+            "Tool description = primary selection mechanism. Minimal descriptions → unreliable routing.",
+            "Include: purpose, input formats, example queries, edge cases, when-to-use vs alternatives.",
+            "Eliminate overlap (analyze_content vs analyze_document with near-identical descriptions).",
+            "Split generic tools into purpose-specific ones."
+          ],
+          "quiz": [
+            {
+              "q": "Agent confuses get_customer vs lookup_order (minimal descriptions). First fix?",
+              "options": [
+                "Add 5-8 few-shot examples",
+                "Expand descriptions with formats, examples, edge cases, boundaries",
+                "Build routing layer with keyword detection",
+                "Merge into lookup_entity"
+              ],
+              "answer": 1,
+              "explain": "Description = root cause mechanism. Low-effort, high-leverage first step."
+            }
+          ]
+        },
+        {
+          "id": "d2s2",
+          "title": "2.2 Structured MCP Error Responses",
+          "learning": [
+            "MCP isError flag signals failure.",
+            "Categories: transient, validation, business, permission.",
+            "Return errorCategory + isRetryable + human-readable message.",
+            "Generic 'Operation failed' = anti-pattern (blocks recovery decisions).",
+            "Distinguish access failure vs valid empty results."
+          ],
+          "quiz": [
+            {
+              "q": "Web search subagent times out. Best error propagation?",
+              "options": [
+                "Return structured context: failure type, query, partial results, alternatives",
+                "Auto-retry internally; return generic status when exhausted",
+                "Mark as success with empty results",
+                "Propagate to top-level handler terminating workflow"
+              ],
+              "answer": 0,
+              "explain": "Structured context enables coordinator recovery: retry, alternative, partial proceed."
+            }
+          ]
+        },
+        {
+          "id": "d2s3",
+          "title": "2.3 Tool Distribution & tool_choice",
+          "learning": [
+            "Too many tools (18 vs 4-5) degrades selection reliability.",
+            "Scoped access: agents get role-relevant tools only.",
+            "tool_choice: 'auto' (model decides), 'any' (must call some tool), forced (specific tool).",
+            "Cross-role scoped tools for high-frequency needs (verify_fact for synthesis)."
+          ],
+          "quiz": [
+            {
+              "q": "Synthesis agent verifies facts via coordinator round-trips (+40% latency). 85% simple fact-checks. Best fix?",
+              "options": [
+                "Give synthesis full web search tools",
+                "Scoped verify_fact tool for synthesis; complex routes via coordinator",
+                "Batch verifications; submit at end",
+                "Cache extra context proactively"
+              ],
+              "answer": 1,
+              "explain": "Least-privilege + role-scoped tool covers 85% case; coordination preserved for complex 15%."
+            }
+          ]
+        },
+        {
+          "id": "d2s4",
+          "title": "2.4 MCP Server Integration",
+          "learning": [
+            "Project scope: .mcp.json (VCS, shared).",
+            "User scope: ~/.claude.json (personal, experimental).",
+            "Env var expansion: ${GITHUB_TOKEN} → secrets stay out of repo.",
+            "All connected MCP server tools discovered + available simultaneously.",
+            "MCP resources expose content catalogs → reduces exploratory calls.",
+            "Prefer community MCP servers for standard integrations (Jira, GitHub)."
+          ],
+          "quiz": [
+            {
+              "q": "Where store team-shared MCP server config with GitHub token?",
+              "options": [
+                "~/.claude.json with hardcoded token",
+                ".mcp.json with ${GITHUB_TOKEN} env expansion",
+                "CLAUDE.md inline JSON",
+                ".claude/commands/mcp.md"
+              ],
+              "answer": 1,
+              "explain": "Project-scoped + env expansion = shared config without leaking secrets."
+            }
+          ]
+        },
+        {
+          "id": "d2s5",
+          "title": "2.5 Built-in Tools (Read/Write/Edit/Bash/Grep/Glob)",
+          "learning": [
+            "Grep: content search inside files.",
+            "Glob: path/name pattern matching (**/*.test.tsx).",
+            "Read+Write: full file ops. Edit: targeted via unique text.",
+            "Edit fails on non-unique match → Read+Write fallback.",
+            "Incremental exploration: Grep entry points → Read → trace imports."
+          ],
+          "quiz": [
+            {
+              "q": "Edit fails because target text appears 3 times. Reliable fallback?",
+              "options": [
+                "Retry Edit with same args",
+                "Read full file + Write modified version",
+                "Switch to Bash sed",
+                "Add more context lines to Edit"
+              ],
+              "answer": 1,
+              "explain": "Read+Write fallback = reliable when Edit cannot find unique anchor."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d3",
+      "title": "Domain 3: Claude Code Configuration & Workflows",
+      "weight": "20%",
+      "sections": [
+        {
+          "id": "d3s1",
+          "title": "3.1 CLAUDE.md Hierarchy",
+          "learning": [
+            "User-level: ~/.claude/CLAUDE.md (personal, NOT shared via VCS).",
+            "Project-level: .claude/CLAUDE.md or root CLAUDE.md (shared via VCS).",
+            "Directory-level: subdirectory CLAUDE.md files.",
+            "@import syntax: modularize via external files (max depth 5).",
+            ".claude/rules/ alternative for topic-split rules.",
+            "/memory command verifies which memory files loaded."
+          ],
+          "quiz": [
+            {
+              "q": "New teammate doesn't receive coding standards. Likely cause?",
+              "options": [
+                "Standards in ~/.claude/CLAUDE.md (user-level only)",
+                "CLAUDE.md too large",
+                "Missing @import statement",
+                "VCS misconfiguration"
+              ],
+              "answer": 0,
+              "explain": "User-level config never shared via VCS; must move to project-level."
+            }
+          ]
+        },
+        {
+          "id": "d3s2",
+          "title": "3.2 Custom Slash Commands & Skills",
+          "learning": [
+            "Project commands: .claude/commands/ (shared via VCS).",
+            "User commands: ~/.claude/commands/ (personal).",
+            "Skills: .claude/skills/ with SKILL.md frontmatter.",
+            "Frontmatter: context: fork, allowed-tools, argument-hint.",
+            "context: fork → isolated subagent; prevents output pollution.",
+            "Skill = on-demand task; CLAUDE.md = always-loaded standards."
+          ],
+          "quiz": [
+            {
+              "q": "Create /review command shared across team. Where?",
+              "options": [
+                ".claude/commands/ in project repo",
+                "~/.claude/commands/ per developer",
+                "Root CLAUDE.md",
+                ".claude/config.json commands array"
+              ],
+              "answer": 0,
+              "explain": "Project-scoped .claude/commands/ → VCS-shared, auto-available on clone."
+            }
+          ]
+        },
+        {
+          "id": "d3s3",
+          "title": "3.3 Path-Specific Rules",
+          "learning": [
+            ".claude/rules/ files with YAML frontmatter paths field.",
+            "Glob patterns: paths: ['terraform/**/*'], ['**/*.test.tsx'].",
+            "Loads only when editing matching files → saves context/tokens.",
+            "Better than directory-level CLAUDE.md when files spread across codebase."
+          ],
+          "quiz": [
+            {
+              "q": "Test files scattered (Button.test.tsx beside Button.tsx etc). Apply same test conventions to all. Best?",
+              "options": [
+                ".claude/rules/ with paths: ['**/*.test.tsx']",
+                "Consolidate in root CLAUDE.md with headers",
+                "Skills per code type",
+                "Separate CLAUDE.md per subdirectory"
+              ],
+              "answer": 0,
+              "explain": "Glob path rules apply by file type regardless of location → deterministic."
+            }
+          ]
+        },
+        {
+          "id": "d3s4",
+          "title": "3.4 Plan Mode vs Direct Execution",
+          "learning": [
+            "Plan mode: complex tasks, large-scale changes, architectural decisions, multi-file.",
+            "Direct execution: simple well-scoped (single-file fix, one validation).",
+            "Plan mode = safe exploration before commitment.",
+            "Explore subagent isolates verbose discovery output.",
+            "Combine: plan investigation → direct execution implementation."
+          ],
+          "quiz": [
+            {
+              "q": "Restructure monolith → microservices across dozens of files. Approach?",
+              "options": [
+                "Plan mode for exploration + design before changes",
+                "Direct execution; let boundaries emerge",
+                "Direct execution with detailed upfront prompt",
+                "Direct execution; switch to plan if complex"
+              ],
+              "answer": 0,
+              "explain": "Architectural decisions + large scale = plan mode hallmark."
+            }
+          ]
+        },
+        {
+          "id": "d3s5",
+          "title": "3.5 Iterative Refinement",
+          "learning": [
+            "Concrete input/output examples > prose descriptions.",
+            "Test-driven iteration: write tests first, share failures.",
+            "Interview pattern: Claude asks clarifying questions before coding.",
+            "Interacting issues → single message. Independent issues → sequential."
+          ],
+          "quiz": [
+            {
+              "q": "Prose description produces inconsistent transformation results. Best fix?",
+              "options": [
+                "Add 'be precise' instruction",
+                "Provide 2-3 concrete input/output examples",
+                "Switch to extended thinking",
+                "Increase max_tokens"
+              ],
+              "answer": 1,
+              "explain": "Examples disambiguate transformation requirements unambiguously."
+            }
+          ]
+        },
+        {
+          "id": "d3s6",
+          "title": "3.6 CI/CD Integration",
+          "learning": [
+            "-p / --print: non-interactive mode for CI.",
+            "--output-format json + --json-schema: machine-parseable findings.",
+            "CLAUDE.md provides project context (testing standards, criteria).",
+            "Session isolation: independent review instance beats self-review.",
+            "Include prior findings on re-runs → avoid duplicate comments.",
+            "Batch API: 50% cost savings, up to 24h SLA, no multi-turn tools."
+          ],
+          "quiz": [
+            {
+              "q": "CI job hangs running 'claude \"Analyze PR\"'. Fix?",
+              "options": [
+                "Set CLAUDE_HEADLESS=true",
+                "Use -p flag: claude -p \"Analyze PR\"",
+                "Redirect stdin from /dev/null",
+                "Add --batch flag"
+              ],
+              "answer": 1,
+              "explain": "-p / --print = documented non-interactive mode."
+            },
+            {
+              "q": "Two workflows: blocking pre-merge check + overnight tech-debt report. Manager proposes batch API for both.",
+              "options": [
+                "Batch for both with polling",
+                "Batch only for overnight report; sync for pre-merge",
+                "Keep sync for both",
+                "Batch for both with timeout fallback"
+              ],
+              "answer": 1,
+              "explain": "Batch SLA up to 24h unsuitable for blocking workflows; ideal for overnight."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d4",
+      "title": "Domain 4: Prompt Engineering & Structured Output",
+      "weight": "20%",
+      "sections": [
+        {
+          "id": "d4s1",
+          "title": "4.1 Explicit Criteria Over Vague Instructions",
+          "learning": [
+            "Explicit categorical criteria > 'be conservative' or 'high-confidence'.",
+            "Define which issues to report (bugs, security) vs skip (style, local).",
+            "High false-positive categories destroy developer trust across accurate ones.",
+            "Define severity with concrete code examples per level."
+          ],
+          "quiz": [
+            {
+              "q": "Reduce false positives in code review. Best prompt change?",
+              "options": [
+                "Instruction: 'be conservative'",
+                "Self-reported confidence threshold",
+                "Explicit categorical criteria with concrete examples",
+                "Lower temperature"
+              ],
+              "answer": 2,
+              "explain": "Specific criteria beat confidence-based filtering or vague modifiers."
+            }
+          ]
+        },
+        {
+          "id": "d4s2",
+          "title": "4.2 Few-Shot Prompting",
+          "learning": [
+            "2-4 targeted examples for ambiguous scenarios.",
+            "Show reasoning: why action chosen over alternative.",
+            "Demonstrate output format (location, issue, severity, fix).",
+            "Distinguish acceptable code patterns from genuine issues.",
+            "Handle varied document structures (inline citations vs bibliographies).",
+            "Reduces hallucination in extraction with informal measurements."
+          ],
+          "quiz": [
+            {
+              "q": "Extraction produces null for required fields across varied document formats. Best fix?",
+              "options": [
+                "Make fields optional",
+                "Few-shot examples showing extraction from varied formats",
+                "Force tool_choice='any'",
+                "Increase context window"
+              ],
+              "answer": 1,
+              "explain": "Few-shot demonstrates correct extraction patterns across formats."
+            }
+          ]
+        },
+        {
+          "id": "d4s3",
+          "title": "4.3 Structured Output via tool_use + JSON Schema",
+          "learning": [
+            "tool_use + JSON schema = most reliable structured output.",
+            "Eliminates syntax errors; semantic errors remain possible.",
+            "tool_choice: 'auto' (may return text), 'any' (must call tool), forced (specific tool).",
+            "Required vs optional fields: optional/nullable for absent info → prevents fabrication.",
+            "Enum with 'other' + detail string for extensible categorization.",
+            "Add 'unclear' enum for ambiguous cases."
+          ],
+          "quiz": [
+            {
+              "q": "Multiple extraction schemas, unknown doc type. Guarantee tool call?",
+              "options": [
+                "tool_choice='auto'",
+                "tool_choice='any'",
+                "tool_choice forced to first schema",
+                "Omit tool_choice"
+              ],
+              "answer": 1,
+              "explain": "'any' guarantees tool call while letting model pick best schema."
+            },
+            {
+              "q": "Source documents sometimes lack a field. Schema design?",
+              "options": [
+                "Mark required; let model fabricate",
+                "Optional / nullable so model returns null",
+                "Add default value",
+                "Force tool_choice='any'"
+              ],
+              "answer": 1,
+              "explain": "Nullable prevents hallucination to satisfy required fields."
+            }
+          ]
+        },
+        {
+          "id": "d4s4",
+          "title": "4.4 Validation, Retry, Feedback Loops",
+          "learning": [
+            "Retry-with-error-feedback: append validation errors to retry prompt.",
+            "Retries effective for: format mismatches, structural errors.",
+            "Retries ineffective when: required info absent from source.",
+            "Self-correction: extract calculated_total + stated_total; flag discrepancy.",
+            "Track detected_pattern field for false-positive analysis."
+          ],
+          "quiz": [
+            {
+              "q": "Extraction missing field X. Source doesn't contain X. Will retry help?",
+              "options": [
+                "Yes, model may find it",
+                "No, info absent → retry ineffective",
+                "Yes with extended thinking",
+                "Yes with higher temperature"
+              ],
+              "answer": 1,
+              "explain": "Retries fix format/structure issues, not missing source data."
+            }
+          ]
+        },
+        {
+          "id": "d4s5",
+          "title": "4.5 Batch Processing Strategies",
+          "learning": [
+            "Message Batches API: 50% savings, ≤24h window, no SLA.",
+            "Suited for: overnight reports, weekly audits, nightly test gen.",
+            "Unsuited for: blocking pre-merge checks.",
+            "No multi-turn tool calling within single batch request.",
+            "custom_id correlates request/response; resubmit failed only.",
+            "SLA math: 30h deadline + 24h batch → submit within 6h window."
+          ],
+          "quiz": [
+            {
+              "q": "Batch of 100 docs: 5 fail (context limit). Recovery?",
+              "options": [
+                "Resubmit entire batch",
+                "Identify failures by custom_id; resubmit only failed with chunking",
+                "Switch to sync API for all",
+                "Discard failures"
+              ],
+              "answer": 1,
+              "explain": "custom_id enables targeted resubmission with modifications."
+            }
+          ]
+        },
+        {
+          "id": "d4s6",
+          "title": "4.6 Multi-Instance Review Architectures",
+          "learning": [
+            "Self-review limitation: generator retains reasoning bias.",
+            "Independent review instance > self-review or extended thinking.",
+            "Multi-pass: per-file local analysis + cross-file integration pass.",
+            "Avoids attention dilution and contradictory findings."
+          ],
+          "quiz": [
+            {
+              "q": "Improve review quality of generated code?",
+              "options": [
+                "Same session reviews its output",
+                "Independent Claude instance without generator's reasoning context",
+                "Extended thinking on generator",
+                "Higher temperature on review"
+              ],
+              "answer": 1,
+              "explain": "Independent instance catches subtle issues self-review misses."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d5",
+      "title": "Domain 5: Context Management & Reliability",
+      "weight": "15%",
+      "sections": [
+        {
+          "id": "d5s1",
+          "title": "5.1 Conversation Context Preservation",
+          "learning": [
+            "Progressive summarization risk: numbers, dates, percentages get vague.",
+            "Lost-in-the-middle: models reliable at start/end, miss middle sections.",
+            "Tool results accumulate disproportionately (40 fields when 5 matter).",
+            "Extract case facts into persistent block injected each prompt.",
+            "Trim verbose tool outputs to relevant fields only.",
+            "Place key findings at beginning of aggregated inputs."
+          ],
+          "quiz": [
+            {
+              "q": "Long support conversation drifts on amounts/dates after summarization. Best fix?",
+              "options": [
+                "Increase max_tokens",
+                "Persistent 'case facts' block (amounts, dates, IDs) in every prompt",
+                "Use extended thinking",
+                "Switch model"
+              ],
+              "answer": 1,
+              "explain": "Structured facts block survives summarization condensation."
+            }
+          ]
+        },
+        {
+          "id": "d5s2",
+          "title": "5.2 Escalation & Ambiguity",
+          "learning": [
+            "Escalate immediately on explicit human request.",
+            "Escalate when policy silent/ambiguous (e.g., competitor price match).",
+            "Escalate when no meaningful progress possible.",
+            "Sentiment + self-reported confidence = unreliable triggers.",
+            "Multiple customer matches → ask additional identifier, don't guess.",
+            "Acknowledge frustration → offer resolution → escalate only if customer reiterates."
+          ],
+          "quiz": [
+            {
+              "q": "55% resolution vs 80% target. Agent escalates simple cases, attempts complex policy exceptions. Best fix?",
+              "options": [
+                "Explicit escalation criteria + few-shot examples in system prompt",
+                "Self-reported confidence threshold",
+                "Trained classifier predicting escalation",
+                "Sentiment-based auto-escalation"
+              ],
+              "answer": 0,
+              "explain": "Root cause = unclear decision boundaries. Confidence/sentiment poorly calibrated."
+            }
+          ]
+        },
+        {
+          "id": "d5s3",
+          "title": "5.3 Error Propagation in Multi-Agent",
+          "learning": [
+            "Structured error context: failure type, attempted query, partial results, alternatives.",
+            "Distinguish access failure vs valid empty results.",
+            "Subagents handle transient locally; propagate unrecoverable + partial results.",
+            "Anti-patterns: silent suppression, generic statuses, terminating whole workflow.",
+            "Synthesis output should annotate coverage gaps."
+          ],
+          "quiz": [
+            {
+              "q": "Subagent encounters transient timeout. Pattern?",
+              "options": [
+                "Infinite retry inside subagent",
+                "Local recovery (1-2 retries); propagate unrecoverable with partial results",
+                "Mark as success with empty results",
+                "Terminate entire workflow"
+              ],
+              "answer": 1,
+              "explain": "Local recovery for transient; structured propagation for unrecoverable."
+            }
+          ]
+        },
+        {
+          "id": "d5s4",
+          "title": "5.4 Large Codebase Context",
+          "learning": [
+            "Extended sessions degrade → 'typical patterns' over specifics.",
+            "Scratchpad files persist key findings across context boundaries.",
+            "Subagent delegation isolates verbose exploration.",
+            "Crash recovery: structured state exports + manifest.",
+            "/compact reduces context during long sessions (lossy)."
+          ],
+          "quiz": [
+            {
+              "q": "After 3 hours codebase exploration, model references 'typical patterns' instead of specific classes. Mitigation?",
+              "options": [
+                "Spawn subagents for targeted questions + scratchpad file with key findings",
+                "Restart with same prompt",
+                "Increase temperature",
+                "Disable history"
+              ],
+              "answer": 0,
+              "explain": "Scratchpad + subagents counteract context degradation."
+            }
+          ]
+        },
+        {
+          "id": "d5s5",
+          "title": "5.5 Human Review & Confidence Calibration",
+          "learning": [
+            "Aggregate 97% may mask poor performance per document type.",
+            "Stratified random sampling on high-confidence extractions.",
+            "Field-level confidence calibrated via labeled validation set.",
+            "Route low-confidence + ambiguous sources to human review."
+          ],
+          "quiz": [
+            {
+              "q": "Reduce human review while maintaining quality?",
+              "options": [
+                "Trust aggregate accuracy",
+                "Field-level confidence + stratified sampling per document type/field",
+                "Random spot checks only",
+                "Eliminate human review at >95% aggregate"
+              ],
+              "answer": 1,
+              "explain": "Aggregate hides segment-specific failures; stratification reveals them."
+            }
+          ]
+        },
+        {
+          "id": "d5s6",
+          "title": "5.6 Provenance & Multi-Source Synthesis",
+          "learning": [
+            "Subagents output structured claim-source mappings (URL, doc name, excerpt, date).",
+            "Conflicting credible sources: annotate both with attribution; don't pick.",
+            "Include publication/collection dates → temporal differences ≠ contradictions.",
+            "Distinguish well-established vs contested findings in reports.",
+            "Render by content type: financial → tables, news → prose, technical → lists."
+          ],
+          "quiz": [
+            {
+              "q": "Two credible sources give conflicting statistics. Handling?",
+              "options": [
+                "Pick higher-reputation source",
+                "Annotate both values with source + date + methodology",
+                "Average the values",
+                "Omit from final report"
+              ],
+              "answer": 1,
+              "explain": "Preserve attribution; let downstream/reader interpret discrepancy."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
